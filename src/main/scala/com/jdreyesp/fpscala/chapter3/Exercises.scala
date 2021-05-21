@@ -1,6 +1,8 @@
 package com.jdreyesp.fpscala.chapter3
 
+import scala.Numeric
 import scala.annotation.tailrec
+import scala.math.Numeric
 
 sealed trait List[+A]
 case object Nil extends List[Nothing]
@@ -120,6 +122,20 @@ object List {
     }
   }
 
+  def addOne(list: List[Int]): List[Int] = {
+    list match {
+      case Nil => Nil
+      case Cons(head, tail) => reverse(foldLeft[Int, List[Int]](tail, List(head + 1))((acc, elem) => Cons(elem+1, acc)))
+    }
+  }
+
+  def doubleToString(list: List[Double]): String = {
+    list match {
+      case Nil => ""
+      case Cons(head, tail) => foldLeft(tail, head.toString)(_ + _)
+    }
+  }
+
   def apply[A](as: A*): List[A] =
     if (as.isEmpty) Nil
     else Cons(as.head, apply(as.tail: _*))
@@ -163,4 +179,6 @@ object Exercises extends App {
   println(appendFoldRight(l, List(5,6,7)))
   println(appendFoldLeft(l, List(5,6,7)))
   println(concatenateLists(List(l, l, l)))
+  println(addOne(l))
+  println(doubleToString(List(1D, 2D, 3D)))
 }
