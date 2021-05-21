@@ -113,6 +113,13 @@ object List {
     case elems => reverse(foldLeft[A, List[A]](elems, reverse(a1))((acc, elem) => Cons(elem, acc)))
   }
 
+  def concatenateLists[A](lists: List[List[A]]): List[A] = {
+    lists match {
+      case Nil => Nil
+      case Cons(list: List[A], restLists: List[List[A]]) => foldLeft[List[A], List[A]](restLists, list)(append(_,_))
+    }
+  }
+
   def apply[A](as: A*): List[A] =
     if (as.isEmpty) Nil
     else Cons(as.head, apply(as.tail: _*))
@@ -155,4 +162,5 @@ object Exercises extends App {
   println(productFoldLeft(l))
   println(appendFoldRight(l, List(5,6,7)))
   println(appendFoldLeft(l, List(5,6,7)))
+  println(concatenateLists(List(l, l, l)))
 }
