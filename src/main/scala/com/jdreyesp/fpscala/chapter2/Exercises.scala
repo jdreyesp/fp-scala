@@ -5,7 +5,6 @@ import scala.annotation.tailrec
 object Exercises extends App {
 
   //Functions as literals
-
   @tailrec
   def isSorted[A](as: Array[A], ordered: (A, A) => Boolean): Boolean = {
     if (as.isEmpty || as.size == 1) true

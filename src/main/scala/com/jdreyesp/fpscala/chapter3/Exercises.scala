@@ -1,9 +1,5 @@
 package com.jdreyesp.fpscala.chapter3
 
-import scala.Numeric
-import scala.annotation.tailrec
-import scala.math.Numeric
-
 sealed trait List[+A]
 case object Nil extends List[Nothing]
 case class Cons[+A](head: A, tail: List[A]) extends List[A]
@@ -77,12 +73,7 @@ object List {
     foldRight(as, 0)((_, b) => b + 1)
   }
 
-  def reverse[A](l: List[A]): List[A] = {
-    l match {
-      case Nil => Nil
-      case Cons(head, tail) => foldLeft[A, List[A]](tail, List(head))((acc, elem) => append(List(elem), acc))
-    }
-  }
+  def reverse[A](l: List[A]): List[A] = foldLeft[A, List[A]](l, List())((acc, elem) => append(List(elem), acc))
 
   def sumFoldLeft(ints: List[Int]): Int = ints match {
     case Nil => 0
@@ -94,33 +85,28 @@ object List {
     case Cons(head, tail) => foldLeft(tail, head)(_ * _)
   }
 
+  //A=Int l=[1,2,3]   [1] => [2,1] => [3,2,1]
+  //A=Int l=[1,2,3]   [1] => [1,2] => [1,2,3]
+  def identity[A](l: List[A]): List[A] = foldLeft[A, List[A]](l, List())((b, a) => Cons(a, b))
+
+  //foldLeft(l, 0)(_ + _) =>
+
+
   //Steps for a1=[1,2,3] a2=[4,5,6]
   //[1,2,3] foldright 3
   //[1,2,3,4*] foldright 4
   //[1,2,3,4, 5*] foldright 5
   //[1,2,3,4,5,6*]
-  def appendFoldRight[A](a1: List[A], a2: List[A]): List[A] = a1 match {
-    case Nil => Nil
-    case elems => foldRight[A, List[A]](elems, a2)(Cons(_, _))
-  }
+  def appendFoldRight[A](a1: List[A], a2: List[A]): List[A] = foldRight(a1, a2)(Cons(_, _))
 
   //Steps for a1=[1,2,3] a2=[4,5,6]
-  //[3,2,1] //reverse
-  //[4,3,2,1] //foldleft
-  //[5,4,3,2,1] //foldleft
-  //[6,5,4,3,2,1] //foldleft
-  //[1,2,3,4,5,6] //reverse
-  def appendFoldLeft[A](a1: List[A], a2: List[A]): List[A] = a2 match {
-    case Nil => Nil
-    case elems => reverse(foldLeft[A, List[A]](elems, reverse(a1))((acc, elem) => Cons(elem, acc)))
-  }
+  //[4,5,6] //reverse O(2n) = O(n)
+  //[3,4,5,6] //foldleft
+  //[2,3,4,5,6] //foldleft
+  //[1,2,3,4,5,6] //foldleft
+  def appendFoldLeft[A](a1: List[A], a2: List[A]): List[A] = foldLeft(reverse(a1), a2)((ax, a) => Cons(a, ax))
 
-  def concatenateLists[A](lists: List[List[A]]): List[A] = {
-    lists match {
-      case Nil => Nil
-      case Cons(list: List[A], restLists: List[List[A]]) => foldLeft[List[A], List[A]](restLists, list)(append(_,_))
-    }
-  }
+  def concatenateLists[A](lists: List[List[A]]): List[A] = foldLeft[List[A], List[A]](lists, List())(append(_,_))
 
   def addOne(list: List[Int]): List[Int] = {
     list match {
@@ -134,6 +120,21 @@ object List {
       case Nil => ""
       case Cons(head, tail) => foldLeft(tail, head.toString)(_ + _)
     }
+  }
+
+  def map[A,B](as: List[A])(f: A => B): List[B] = reverse(foldLeft(as, List[B]())((a, az) => Cons(f(az), a)))
+
+  def flatMap[A, B](as: List[A])(f: A => List[B]): List[B] = foldRight(as, List[B]())((az, a) => append(f(az), a))
+
+  def filter[A](as: List[A])(f: A => Boolean): List[A] = foldRight(as, List[A]())((az, a) => if(f(az)) Cons(az, a) else a)
+
+  def filterWithFlatMap[A](as: List[A])(f: A => Boolean): List[A] = flatMap(as)(i => if(f(i)) List(i) else Nil)
+
+  def zipWith[A](a1: List[A], a2: List[A])(f: (A, A) => A): List[A] = (a1, a2) match {
+    case (Nil, Nil) => Nil
+    case (a, Nil) => a
+    case (Nil, b) => b
+    case (Cons(h1, t1), Cons(h2, t2)) => Cons(f(h1, h2), zipWith(t1, t2)(f))
   }
 
   def apply[A](as: A*): List[A] =
@@ -164,12 +165,6 @@ object Exercises extends App {
   println(dropWhile(l, (elem: Int) => elem < 3))
   println(init(l))
   println(length(l))
-
-  def b(l: List[Int]): Boolean = l match { case Cons(_, _) => true}
-  def b2(l: List[Int]): Boolean = l match {case Cons(_, _) => true}
-
-  println(s"B IS: ${b(l) && b2(l)}")
-
   //scala.collectionList() Constructors are made with foldRights :)
   println(foldRight(List(1,2,3), Nil:List[Int])(Cons(_,_)))
   println(foldLeft(l, 0)(_ + _))
@@ -181,4 +176,9 @@ object Exercises extends App {
   println(concatenateLists(List(l, l, l)))
   println(addOne(l))
   println(doubleToString(List(1D, 2D, 3D)))
+  println(map(l) {_+1})
+  println(filter(l)(_ < 4))
+  println(flatMap(l)(i => List(i,i)))
+  println(filterWithFlatMap(l)(_ < 4))
+  println(zipWith(l, l)(_ + _))
 }
