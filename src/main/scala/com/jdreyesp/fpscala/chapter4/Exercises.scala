@@ -11,13 +11,6 @@ sealed trait Option[+A] {
     }
   }
 
-  def flatMap[B](f: A => Option[B]): Option[B] = {
-    this match {
-      case Some(value) => f(value)
-      case None => None
-    }
-  }
-
   def getOrElse[B >: A](default: => B): B = {
     this match {
       case Some(value) => value
@@ -25,20 +18,43 @@ sealed trait Option[+A] {
     }
   }
 
-  def orElse[B >: A](ob: => Option[B]): Option[B] = {
-    this match {
-      case op @ Some(value) => op
-      case None => ob
-    }
+  def flatMap[B](f: A => Option[B]): Option[B] = {
+    this.map(f) getOrElse None
   }
 
-  def filter(f: A => Boolean): Option[A] = {
-    this match {
-      case Some(value) if !f(value) => None
-      case Some(value) => Some(value)
-      case None => None
-    }
+  //Alternative implementation
+//  def flatMap[B](f: A => Option[B]): Option[B] = {
+//    this match {
+//      case Some(value) => f(value)
+//      case None => None
+//    }
+//  }
+
+
+  def orElse[B >: A](ob: => Option[B]): Option[B] = {
+    this map (Some(_)) getOrElse ob
   }
+
+  //Alternative implementation
+//  def orElse[B >: A](ob: => Option[B]): Option[B] = {
+//    this match {
+//      case op @ Some(_) => op
+//      case None => ob
+//    }
+//  }
+
+  def filter(f: A => Boolean): Option[A] = {
+   flatMap(value => if(f(value)) Some(value) else None)
+  }
+
+  //Alternative implementation
+//  def filter(f: A => Boolean): Option[A] = {
+//    this match {
+//      case Some(value) if !f(value) => None
+//      case Some(value) => Some(value)
+//      case None => None
+//    }
+//  }
 
 }
 
