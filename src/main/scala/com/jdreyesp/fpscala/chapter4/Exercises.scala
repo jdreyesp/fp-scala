@@ -59,8 +59,8 @@ sealed trait Option[+A] {
 }
 
 object Exercises extends App {
-  val o1 = Some(1)
-  val o2 = None
+  val o1: Option[Int] = Some(1)
+  val o2: Option[Int] = None
 
   def variance(xs: Seq[Double]): Option[Double] = {
     val mean = xs.reduce(_ + _) / xs.size
@@ -68,6 +68,10 @@ object Exercises extends App {
 
     xs.map(elem => Some(elem).map(elem => applyVariance(elem))).reduce((elem1, elem2) => elem1.flatMap(e1 => elem2.flatMap(e2 => Some(e1 + e2))))
       .flatMap(value => Some(value / xs.size))
+  }
+
+  def map2[A,B,C](a: Option[A], b: Option[B])(f: (A, B) => C): Option[C] = {
+    a.flatMap(a1 => b.map(a2 => f(a1, a2)))
   }
 
   println(o1.map(value => value + 1))
@@ -83,4 +87,7 @@ object Exercises extends App {
   println(o1.map(value => value + 1).filter(_ == 1).getOrElse(10))
 
   println(variance(Seq(1D, 2D, 3D)))
+
+  println(map2(o1, o2)((a, b) => a + b))
+  println(map2(o1, Some(1))((a, b) => a + b))
 }
