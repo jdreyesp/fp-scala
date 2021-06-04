@@ -58,7 +58,7 @@ sealed trait Option[+A] {
 
 }
 
-object Exercises extends App {
+object ExercisesOption extends App {
   val o1: Option[Int] = Some(1)
   val o2: Option[Int] = None
 
@@ -70,9 +70,18 @@ object Exercises extends App {
       .flatMap(value => Some(value / xs.size))
   }
 
+  //This is the essence of the for{} comprehension (syntactic sugar) in Scala
   def map2[A,B,C](a: Option[A], b: Option[B])(f: (A, B) => C): Option[C] = {
     a.flatMap(a1 => b.map(a2 => f(a1, a2)))
   }
+
+  def sequence[A](a: List[Option[A]]): Option[List[A]] = {
+    Some(a.foldLeft(List[A]())((l, op) => op match { case Some(value) => l :+ value ; case None => l}))
+  }
+
+  def traverse[A,B](a: List[A])(f: A => Option[B]): Option[List[B]] =
+    a.foldRight[Option[List[B]]](Some(Nil))((op, l) => map2(f(op), l)(_ :: _))
+
 
   println(o1.map(value => value + 1))
   println(o1.flatMap(value => Some(value + 1)))
@@ -89,5 +98,10 @@ object Exercises extends App {
   println(variance(Seq(1D, 2D, 3D)))
 
   println(map2(o1, o2)((a, b) => a + b))
+  println(map2(o2, o1)((a, b) => a + b))
+  println(map2(o2, o2)((a, b) => a + b))
   println(map2(o1, Some(1))((a, b) => a + b))
+
+  println(sequence(List(Some(1), Some(2), None, None, Some(3), None)))
+  println(traverse(List(1, 2, 3))(a => Some(a + 1)))
 }
