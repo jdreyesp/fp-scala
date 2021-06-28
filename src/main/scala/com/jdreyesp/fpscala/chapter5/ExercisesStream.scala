@@ -29,6 +29,14 @@ sealed trait Stream[+A] {
       case _ => empty
     }
   }
+
+  def takeWhile(p: A => Boolean): Stream[A] = {
+    this match {
+      case Cons(h, t) if p(h()) => cons(h(), t().takeWhile(p))
+      case Cons(h, _) => empty
+    }
+  }
+
 }
 case object Empty extends Stream[Nothing]
 case class Cons[+A](h: () => A, t: () => Stream[A]) extends Stream[A]
@@ -48,20 +56,6 @@ object Stream {
     if (as.isEmpty) empty else cons(as.head, apply(as.tail: _*))
   }
 
-
-//  def foldLeft[A, B](s: Stream[A], acc: B)(f: (B, A) => A): A = {
-//    s match {
-//      case Empty => acc
-//      case Cons(h, t) => foldLeft(t, f(h(), acc))
-//    }
-//  }
-//
-//  def unapply[A](s: Stream): Array[A] = {
-//    s.foldLeft()
-//
-//  }
-
-
 }
 
 object ExercisesStream extends App {
@@ -71,4 +65,5 @@ object ExercisesStream extends App {
   println(s.toList())
   println(s.take(3).toList())
   println(s.drop(3).toList())
+  println(s.takeWhile(_<3).toList())
 }
