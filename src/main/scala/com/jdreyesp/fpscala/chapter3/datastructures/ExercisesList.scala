@@ -1,4 +1,4 @@
-package com.jdreyesp.fpscala.chapter3
+package com.jdreyesp.fpscala.chapter3.datastructures
 
 sealed trait List[+A]
 case object Nil extends List[Nothing]

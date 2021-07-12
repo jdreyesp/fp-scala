@@ -1,4 +1,4 @@
-package com.jdreyesp.fpscala.chapter4
+package com.jdreyesp.fpscala.chapter4.errorhandling
 
 case class Some[+A](get: A) extends Option[A]
 case object None extends Option[Nothing]

@@ -1,4 +1,4 @@
-package com.jdreyesp.fpscala.chapter4
+package com.jdreyesp.fpscala.chapter4.errorhandling
 
 sealed trait Either[+E, +A] {
   def map[B](f: A => B): Either[E, B] = this match {

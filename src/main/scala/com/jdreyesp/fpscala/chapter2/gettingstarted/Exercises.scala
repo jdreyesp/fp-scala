@@ -1,4 +1,4 @@
-package com.jdreyesp.fpscala.chapter2
+package com.jdreyesp.fpscala.chapter2.gettingstarted
 
 import scala.annotation.tailrec
 

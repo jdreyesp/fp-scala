@@ -1,4 +1,4 @@
-package com.jdreyesp.fpscala.chapter3
+package com.jdreyesp.fpscala.chapter3.datastructures
 
 sealed trait Tree[+A]
 case class Leaf[+A](value: A) extends Tree[A]
