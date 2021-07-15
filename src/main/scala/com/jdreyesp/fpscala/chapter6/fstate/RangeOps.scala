@@ -1,6 +1,6 @@
 package com.jdreyesp.fpscala.chapter6.fstate
 
-import com.jdreyesp.fpscala.chapter6.fstate.RNG.{double, double3, doubleInt, intDouble}
+import com.jdreyesp.fpscala.chapter6.fstate.State.{double, double3, doubleInt, intDouble, ints, nonNegativeInt}
 
 trait RNG {
   def nextInt: (Int, RNG)
@@ -15,41 +15,29 @@ case class SimpleRNG(seed: Long) extends RNG {
   }
 }
 
-object RNG {
+case class State[S, +A](run: S => (A, S))
 
-  type Rand[+A] = RNG => (A, RNG)
+object State {
 
-  def nonNegativeInt(rng: RNG): (Int, RNG) = {
+  type Rand[+A] = State[RNG, A]
+
+  val nonNegativeInt: Rand[Int] = { State(rng =>
     rng.nextInt match {
       case (Int.MinValue, nextRNG) => (Int.MaxValue, nextRNG)
       case (n, nextRNG) if n < 0 => (-n, nextRNG)
       case (n, nextRNG) if n >= 0 => (n, nextRNG)
-    }
+    })
   }
 
-  def double(rng: RNG): (Double, RNG) = {
-    val (n, nextRNG) = RNG.nonNegativeInt(rng)
-    (n.toDouble / Int.MaxValue, nextRNG)
-  }
+  def double: Rand[Double] = mapFromFlatMap(nonNegativeInt)(_.toDouble / Int.MaxValue)
 
-  def intDouble(rng: RNG): ((Int, Double), RNG) = {
-    val (nInt, nextRNG) = nonNegativeInt(rng)
-    val (nDouble, _) = double(rng)
-    ((nInt, nDouble), nextRNG)
-  }
+  def intDouble: Rand[(Int, Double)] = map2(nonNegativeInt, double)((_, _))
 
-  def doubleInt(rng: RNG): ((Double, Int), RNG) = {
-    val ((nInt, nDouble), nextRNG) = intDouble(rng)
-    ((nDouble, nInt), nextRNG)
-  }
+  def doubleInt: Rand[(Double, Int)] = map2(double, nonNegativeInt)((_, _))
 
-  def double3(rng: RNG): ((Double, Double, Double), RNG) = {
-    val (nDouble1, rng2) = double(rng)
-    val (nDouble2, rng3) = double(rng2)
-    val (nDouble3, nextRNG) = double(rng3)
-    ((nDouble1, nDouble2, nDouble3), nextRNG)
-  }
+  def double3: Rand[(Double, Double, Double)] = map3(double, double, double)((_, _, _))
 
+  //TODO: pending
   def ints(count: Int)(rng: RNG): (List[Int], RNG) = {
 
     def intR(n: Int, acc: List[Int], rng: RNG): (List[Int], RNG) = {
@@ -65,6 +53,40 @@ object RNG {
 
     intR(count, List(), rng)
   }
+
+  def map[A, B](s: Rand[A])(f: A => B): Rand[B] = {
+    State(rng => {
+      val (a, rng2) = s.run(rng)
+      (f(a), rng2)
+    })
+  }
+
+  def map2[A, B, C](s1: Rand[A], s2: Rand[B])(f: (A, B) => C): Rand[C] = {
+    State(rng => {
+      val (a, rng2) = s1.run(rng)
+      val (b, _) = s2.run(rng)
+      (f(a, b), rng2)
+    })
+  }
+
+  def map3[A, B, C, D](s1: Rand[A], s2: Rand[B], s3: Rand[C])(f: (A, B, C) => D): Rand[D] = {
+    State(rng => {
+      val (a, rng2) = s1.run(rng)
+      val (b, _) = s2.run(rng)
+      val (c, _) = s3.run(rng)
+      (f(a, b, c), rng2)
+    })
+  }
+
+  def flatMap[A, B](f: Rand[A])(g: A => Rand[B]): Rand[B] = {
+    State(rng => {
+      val (a, rng2) = f.run(rng)
+      val (b, rng3) = g(a).run(rng2)
+      (b, rng3)
+    })
+  }
+
+  def mapFromFlatMap[A, B](s: Rand[A])(f: A => B): Rand[B] = flatMap(s)(a => State(rng => (f(a), rng)))
 }
 
 object Main extends App {
@@ -74,12 +96,13 @@ object Main extends App {
   println(n)
   println(rng2.nextInt)
 
-  println(RNG.nonNegativeInt(rng))
-  println(double(double(RNG.double(rng)._2)._2))
+  println(nonNegativeInt.run(rng))
 
-  println(intDouble(rng))
-  println(doubleInt(rng))
-  println(double3(rng))
+  println(double.run(rng))
 
-  println(RNG.ints(5)(rng))
+  println(intDouble.run(rng))
+  println(doubleInt.run(rng))
+  println(double3.run(rng))
+
+  println(ints(5)(rng))
 }
