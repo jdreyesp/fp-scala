@@ -1,6 +1,10 @@
 package com.jdreyesp.fpscala.chapter4.errorhandling
 
+case class Left[+E](value: E) extends Either[E, Nothing]
+case class Right[+A](value: A) extends Either[Nothing, A]
+
 sealed trait Either[+E, +A] {
+
   def map[B](f: A => B): Either[E, B] = this match {
     case Left(value) => Left(value)
     case Right(value) => Right(f(value))
@@ -20,9 +24,6 @@ sealed trait Either[+E, +A] {
     this.flatMap(eith1 => b.map(eith2 => f(eith1, eith2)))
   }
 }
-
-case class Left[+E](value: E) extends Either[E, Nothing]
-case class Right[+A](value: A) extends Either[Nothing, A]
 
 object ExercisesEither extends App {
 

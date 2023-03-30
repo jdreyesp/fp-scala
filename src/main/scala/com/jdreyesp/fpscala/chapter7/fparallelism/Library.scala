@@ -45,6 +45,20 @@ object Par {
       UnitFuture(f(af.get(), bf.get()))
     }
 
+//  def map2Actors[A, B, C](a: => Par[A], b: => Par[B])(f: (A, B) => C): Par[C] = {
+//    es => scala.concurrent.Future[C]((cb: C => Unit) => {
+//      var ar: Option[A] = None
+//      var br: Option[B] = None
+//
+//      val combiner = Actor[Either[A, B]] {
+//        case Left(a) => br match {
+//          case None => ar = Some(a)
+//          case Some(b) => eval(es)(cb(f(a,b)))
+//        }
+//      }
+//    })
+//  }
+
   /**
    * Fork creates a new computation in a separate thread. This is meant to be here for making the parallel computation call explicit
    * @param f
